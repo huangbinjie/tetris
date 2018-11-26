@@ -1,1 +1,1 @@
-class Move { }
+class MoveComponent { }

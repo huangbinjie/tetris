@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": "./src",
+    "target": "es5",
+    "outDir": "build",
+    "lib": [
+      "dom",
+      "es2015"
+    ],
+    "paths": {
+      "*": [
+        "*"
+      ],
+      "@components/*": [
+        "components/*"
+      ],
+      "@systems/*": [
+        "systems/*"
+      ],
+      "@entities/*": [
+        "entities/*"
+      ]
+    }
+  }
+}

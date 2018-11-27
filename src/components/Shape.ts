@@ -1,3 +1,3 @@
 export class ShapeComponent {
-  constructor(public value: Array<number[]>) { }
+  constructor(public value: number[][][]) { }
 }

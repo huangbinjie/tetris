@@ -1,1 +1,1 @@
-class MoveComponent { }
+export class MoveComponent { }

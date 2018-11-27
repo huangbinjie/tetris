@@ -1,5 +1,6 @@
-import { IShape } from "@entities/IShape";
+import { IShape } from "./entities/IShape";
 import { ActorSystem, AbstractActor, ActorRef } from "js-actor"
+import { BeginRender } from "./systems/Render/messages/BeginRender";
 
 export class World {
   private entities: IShape[] = []
@@ -23,5 +24,17 @@ export class World {
 
   public broadcast(message: object) {
     this.systemSystem.eventStream.emit("**", message)
+  }
+
+  public start() {
+    this.broadcast(new BeginRender)
+  }
+
+  public update() {
+
+  }
+
+  public stop() {
+
   }
 }

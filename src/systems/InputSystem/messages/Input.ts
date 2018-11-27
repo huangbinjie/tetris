@@ -1,3 +1,3 @@
 class Input {
-  constructor(public value: string) { }
+  constructor(public direction: string) { }
 }

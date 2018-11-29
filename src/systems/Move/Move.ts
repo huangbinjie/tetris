@@ -1,8 +1,6 @@
 import { AbstractActor } from "js-actor"
-import { World } from "world";
-import { UpdatePosition } from "./messages/UpdatePosition";
-import { InputLeft } from "systems/InputSystem/messages/InputLeft";
-import { IShape } from "entities/IShape";
+import { World } from "../../world"
+import { Input } from "../input/messages/Input"
 
 export class MoveSystem extends AbstractActor {
   constructor(

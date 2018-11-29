@@ -1,3 +1,3 @@
-class Input {
+export class Input {
   constructor(public direction: string) { }
 }

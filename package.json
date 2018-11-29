@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "parcel watch index.html"
+  },
   "dependencies": {
     "components": "^0.1.0",
     "entities": "^1.1.2",

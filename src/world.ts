@@ -3,16 +3,21 @@ import { ActorSystem, AbstractActor, ActorRef } from "js-actor"
 import { Update } from "./Update";
 import { IEntity } from "./entities/IEntity";
 import { GenerationSystem } from "./systems/Generation/Generation";
-import { MoveSystem } from "./systems/Move/Move";
 import { InputSystem } from "./systems/input/Input";
 import { Start } from "./Start";
+import { DetectSystem } from "./systems/detect/Detect";
+import { RenderSystem } from "./systems/Render/RenderSystem";
+import { IScore } from "./entities/score/IScore";
+import { ScoreSystem } from "./systems/score/Score";
 
 export class World {
   private entities: IEntity[] = []
   private systemSystem = new ActorSystem("game")
-  private col = 10
-  private row = 20
-  private boards = genBoards(this.row, this.col)
+  public col = 10
+  public row = 20
+  public boards = genBoards(this.row, this.col)
+  public moveQueue: string[] = []
+  public gravity = 1
 
   public addEntity(entity: IEntity) {
     this.entities.push(entity)
@@ -34,17 +39,33 @@ export class World {
     this.systemSystem.broadcast(message)
   }
 
+  public getCurrentShape() {
+    return this.getEntities().find(shape => shape.moveComponent) as IShape | undefined
+  }
+
+  public getNextShape() {
+    return this.getEntities().find(shape => shape.nextComponent) as IShape | undefined
+  }
+
+  public getScore() {
+    return this.getEntities().find(entity => entity.scoreComponent) as IScore
+  }
+
   public start(ctx: CanvasRenderingContext2D) {
-    this.systemSystem.actorOf(new GenerationSystem(this))
-    this.systemSystem.actorOf(new InputSystem(this))
+    this.addSystem(new GenerationSystem(this))
+    this.addSystem(new InputSystem(this))
+    this.addSystem(new RenderSystem(this))
+    this.addSystem(new DetectSystem(this))
+    this.addSystem(new ScoreSystem(this))
     this.broadcast(new Start)
     this.update(ctx)
   }
 
   public update(ctx: CanvasRenderingContext2D) {
     this.broadcast(new Update)
-    const movingShape = this.entities.find(entity => entity.moveComponent) as IShape
+    const movingShape = this.getCurrentShape()
     const nextShape = this.entities.find(entity => entity.nextComponent) as IShape
+    const score = this.getScore()
 
     drawStage(ctx, this.col, this.row, this.boards)
 
@@ -58,13 +79,92 @@ export class World {
       drawNextShape(ctx, nextShape, 220, 36)
     }
 
-    drawScore(ctx, 0)
+    drawScore(ctx, score.scoreComponent.value)
 
     requestAnimationFrame(this.update.bind(this, ctx))
   }
 
   public stop() {
 
+  }
+
+  eliminateRow() {
+    // *) 消除成行的方块
+    var eliminateNum = 0;
+    var eliminateArr = new Array(this.row);
+    for (var i = this.row - 1; i >= 0; i--) {
+      var gridNum = 0;
+      for (var j = 0; j < this.col; j++) {
+        if (this.boards[i][j] == 0) {
+          break;
+        }
+        gridNum++;
+      }
+      // *) 满足消掉的条件
+      if (gridNum === this.col) {
+        eliminateArr[i] = true;
+        eliminateNum++;
+      } else {
+        eliminateArr[i] = false;
+      }
+    }
+
+    if (eliminateNum > 0) {
+      var nextIdx = this.row - 1;
+      for (var i = this.row - 1; i >= 0; i--) {
+        while (nextIdx >= 0 && eliminateArr[nextIdx] === true) {
+          nextIdx--;
+        }
+
+        if (i === nextIdx) {
+          nextIdx--;
+          continue;
+        } else {
+          if (nextIdx >= 0) {
+            for (var j = 0; j < this.col; j++) {
+              this.boards[i][j] = this.boards[nextIdx][j];
+            }
+            nextIdx--;
+          } else {
+            for (var j = 0; j < this.col; j++) {
+              this.boards[i][j] = 0;
+            }
+          }
+        }
+      }
+    }
+
+    return eliminateNum;
+  }
+
+  occupied(tx: number, ty: number, shapeArr: number[][]) {
+    for (var i = 0; i < 4; i++) {
+      for (var j = 0; j < 4; j++) {
+        if (shapeArr[i][j] == 1) {
+          if (tx + j < 0 || tx + j >= this.col || ty + i < 0 || ty + i >= this.row) {
+            return true;
+          }
+          if (this.boards[ty + i][tx + j] == 1) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  applyShape(tx: number, ty: number, shapeArr: number[][]) {
+    var i, j;
+    for (i = 0; i < 4; i++) {
+      for (j = 0; j < 4; j++) {
+        if (shapeArr[i][j] === 1) {
+          if (tx + j < 0 || tx + j >= this.col || ty + i < 0 || ty + i >= this.row) {
+            continue;
+          }
+          this.boards[ty + i][tx + j] = 1;
+        }
+      }
+    }
   }
 }
 

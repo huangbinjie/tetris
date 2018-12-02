@@ -1,3 +1,3 @@
-export class TextComponent {
+export class ScoreComponent {
   constructor(public value: number) { }
 }

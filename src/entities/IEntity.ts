@@ -1,5 +1,5 @@
 import { ShapeComponent } from "../components/Shape";
-import { TextComponent } from "../components/Text";
+import { ScoreComponent } from "../components/Score";
 
 export interface IEntity {
   [key: string]: any

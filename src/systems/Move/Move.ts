@@ -1,93 +1,64 @@
-// `import { AbstractActor } from "js-actor"
-// import { World } from "../../world"
-// import { Input } from "../input/messages/Input"
-// import { Update } from "../../Update";
-// import { IShape } from "../../entities/shapes/IShape";
+import { AbstractActor } from "js-actor"
+import { World } from "../../world"
+import { Keydown } from "../input/messages/Keydown";
+import { Update } from "../../Update";
 
-// export class MoveSystem extends AbstractActor {
-//   constructor(
-//     private world: World
-//   ) {
-//     super()
-//   }
-//   createReceive() {
-//     return this.receiveBuilder()
-//       .match(Update, () => {
-//         const moveQueue = this.world.moveQueue
-//         const current = this.world.getCurrentShape()
-//         if (current) {
-//           for (let direction of moveQueue) {
-//             this.move(current, direction)
-//           }
-//         }
-//       })
-//       .build()
-//   }
-//   move(current: IShape, keyDirection: string) {
-//     const pieceDirection = current.directionComponent.value
-//     const shape = current.shapeComponent.value[pieceDirection]
-//     switch (keyDirection) {
-//       case "left": {
-//         current.gravityComponent.value = 1
-//         const { x, y } = current.positionComponent
-//         const nextX = x - 1
-//         if (this.occupied(nextX, y, shape)) {
-//           current.positionComponent.x -= 1
-//         }
-//         break
-//       }
-//       case "right": {
-//         current.gravityComponent.value = 1
-//         const { x, y } = current.positionComponent
-//         const nextX = x + 1
-//         if (this.occupied(nextX, y, shape)) {
-//           current.positionComponent.x += 1
-//         }
-//         break
-//       }
-//       case "up": {
-//         current.gravityComponent.value = 1
-//         const { x, y } = current.positionComponent
-//         const nextShapeIdx = (current.directionComponent.value + 1) % 4
-//         const nextShape = current.shapeComponent.value[nextShapeIdx]
-//         if (this.occupied(x, y, nextShape)) {
-//           current.directionComponent.value = (current.directionComponent.value + 1) % 4
-//         }
-//         break
-//       }
-//       case "down": {
-//         const { x, y } = current.positionComponent
-//         this.drop(x, y, shape)
-//         break
-//       }
-//     }
-//   }
-//   occupied(tx: number, ty: number, shapeArr: number[][]) {
-//     for (var i = 0; i < 4; i++) {
-//       for (var j = 0; j < 4; j++) {
-//         if (shapeArr[i][j] == 1) {
-//           if (tx + j < 0 || tx + j >= this.world.col || ty + i < 0 || ty + i >= this.world.row) {
-//             return false;
-//           }
-//           if (this.world.boards[ty + i][tx + j] == 1) {
-//             return false;
-//           }
-//         }
-//       }
-//     }
-//     return true;
-//   }
-//   drop(tx: number, ty: number, shapeArr: number[][]) {
-//     // *) 方块落地
-//     for (var i = 0; i < 4; i++) {
-//       for (var j = 0; j < 4; j++) {
-//         if (shapeArr[i][j] == 1) {
-//           if (tx + j < 0 || tx + j >= this.world.col || ty + i < 0 || ty + i >= this.world.row) {
-//             continue;
-//           }
-//           this.world.boards[ty + i][tx + j] = 1;
-//         }
-//       }
-//     }
-//   }
-// }`
+export class MoveSystem extends AbstractActor {
+  constructor(
+    private world: World
+  ) {
+    super()
+  }
+  createReceive() {
+    return this.receiveBuilder()
+      .match(Keydown, ({ direction: keyDirection }) => {
+        const current = this.world.getCurrentShape()
+        if (current) {
+          const direction = current.directionComponent.value
+          const shape = current.shapeComponent.value[direction]
+          switch (keyDirection) {
+            case "left": {
+              const { x, y } = current.positionComponent
+              const nextX = x - 1
+              if (!this.world.occupied(nextX, y, shape)) {
+                current.positionComponent.x -= 1
+              }
+              break
+            }
+            case "right": {
+              const { x, y } = current.positionComponent
+              const nextX = x + 1
+              if (!this.world.occupied(nextX, y, shape)) {
+                current.positionComponent.x += 1
+              }
+              break
+            }
+            case "up": {
+              const { x, y } = current.positionComponent
+              const nextShapeIdx = (current.directionComponent.value + 1) % 4
+              const nextShape = current.shapeComponent.value[nextShapeIdx]
+              if (!this.world.occupied(x, y, nextShape)) {
+                current.directionComponent.value = (current.directionComponent.value + 1) % 4
+              }
+              break
+            }
+            default:
+            case "down": {
+              break
+            }
+          }
+        }
+      })
+      .match(Update, () => {
+        const current = this.world.getCurrentShape()
+        const now = Date.now()
+        if (current) {
+          if (now - this.world.lastUpdated > 500 / this.world.gravity) {
+            current.positionComponent.y += 1
+            this.world.lastUpdated = now
+          }
+        }
+      })
+      .build()
+  }
+}

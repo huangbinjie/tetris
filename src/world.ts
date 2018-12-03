@@ -6,9 +6,10 @@ import { GenerationSystem } from "./systems/Generation/Generation";
 import { InputSystem } from "./systems/input/Input";
 import { Start } from "./Start";
 import { DetectSystem } from "./systems/detect/Detect";
-import { RenderSystem } from "./systems/Render/RenderSystem";
 import { IScore } from "./entities/score/IScore";
 import { ScoreSystem } from "./systems/score/Score";
+import { MoveSystem } from "./systems/move/Move";
+import { GravitySystem } from "./systems/gravity/Gravity";
 
 export class World {
   private entities: IEntity[] = []
@@ -18,6 +19,7 @@ export class World {
   public boards = genBoards(this.row, this.col)
   public moveQueue: string[] = []
   public gravity = 1
+  public lastUpdated = 0
 
   public addEntity(entity: IEntity) {
     this.entities.push(entity)
@@ -54,9 +56,10 @@ export class World {
   public start(ctx: CanvasRenderingContext2D) {
     this.addSystem(new GenerationSystem(this))
     this.addSystem(new InputSystem(this))
-    this.addSystem(new RenderSystem(this))
+    this.addSystem(new MoveSystem(this))
     this.addSystem(new DetectSystem(this))
     this.addSystem(new ScoreSystem(this))
+    this.addSystem(new GravitySystem(this))
     this.broadcast(new Start)
     this.update(ctx)
   }

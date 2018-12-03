@@ -1,1 +1,3 @@
-export class MoveComponent { }
+import { IComponent } from "./IComponent";
+
+export class MoveComponent implements IComponent { }
